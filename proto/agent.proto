@@ -1,0 +1,106 @@
+// Copyright 2026 Muhammad Waleed
+// Licensed under the Apache License, Version 2.0
+// Author: Muhammad Waleed
+
+syntax = "proto3";
+package taafi.agent;
+
+service AgentService {
+  rpc ReportMetrics(MetricsRequest) returns (MetricsResponse);
+  rpc ReportIncident(IncidentReport) returns (IncidentResponse);
+  rpc RequestFix(FixRequest) returns (FixResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc GetStatus(StatusRequest) returns (StatusResponse);
+}
+
+message MetricData {
+  string name = 1;
+  double value = 2;
+  map<string, string> labels = 3;
+  int64 timestamp = 4;
+}
+
+message MetricsRequest {
+  string agent_id = 1;
+  repeated MetricData metrics = 2;
+}
+
+message MetricsResponse {
+  bool success = 1;
+}
+
+message IncidentData {
+  string id = 1;
+  string incident_type = 2;
+  string severity = 3;
+  string description = 4;
+  repeated string affected_tables = 5;
+  string query = 6;
+  int64 timestamp = 7;
+  string agent_id = 8;
+  bool resolved = 9;
+}
+
+message IncidentReport {
+  string agent_id = 1;
+  IncidentData incident = 2;
+}
+
+message IncidentResponse {
+  bool success = 1;
+  string incident_id = 2;
+  bool has_suggested_fix = 3;
+  FixData suggested_fix = 4;
+}
+
+message FixData {
+  string id = 1;
+  string incident_id = 2;
+  string fix_type = 3;
+  string description = 4;
+  string sql = 5;
+  string command = 6;
+  double risk_score = 7;
+  double confidence = 8;
+  string rollback_plan = 9;
+  bool approved = 10;
+  bool applied = 11;
+}
+
+message FixRequest {
+  string agent_id = 1;
+  string incident_id = 2;
+  FixData fix = 3;
+}
+
+message FixResponse {
+  bool success = 1;
+  string message = 2;
+  uint64 execution_time_ms = 3;
+}
+
+message HeartbeatRequest {
+  string agent_id = 1;
+  string status = 2;
+  int64 timestamp = 3;
+  string db_type = 4;
+}
+
+message HeartbeatResponse {
+  bool ack = 1;
+  bool request_sync = 2;
+}
+
+message StatusRequest {
+  string agent_id = 1;
+}
+
+message StatusResponse {
+  string agent_id = 1;
+  string status = 2;
+  uint64 uptime_secs = 3;
+  string db_type = 4;
+  bool connected = 5;
+  uint64 incident_count = 6;
+  uint64 fix_count = 7;
+}

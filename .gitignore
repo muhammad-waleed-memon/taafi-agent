@@ -1,0 +1,5 @@
+/target
+/taafi_memory.db
+/taafi_agent.db
+.env
+Cargo.lock

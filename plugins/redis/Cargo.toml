@@ -1,0 +1,17 @@
+# Copyright 2026 Muhammad Waleed
+# Licensed under the Apache License, Version 2.0
+# Author: Muhammad Waleed
+
+[package]
+name = "taafi-plugin-redis"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+async-trait = "0.1"
+tracing = "0.1"
+thiserror = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }

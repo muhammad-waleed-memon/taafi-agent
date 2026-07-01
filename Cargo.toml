@@ -1,0 +1,45 @@
+# Copyright 2026 Muhammad Waleed
+# Licensed under the Apache License, Version 2.0
+# Author: Muhammad Waleed
+
+[workspace]
+members = [
+    ".",
+    "plugins/universal",
+    "plugins/postgresql",
+    "plugins/mysql",
+    "plugins/mongodb",
+    "plugins/redis",
+    "plugins/kafka",
+]
+
+[package]
+name = "taafi-agent"
+version = "0.1.0"
+edition = "2021"
+authors = ["Muhammad Waleed"]
+license = "Apache-2.0"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+tonic = { version = "0.11", features = ["tls"] }
+prost = "0.12"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json"] }
+sha3 = "0.10"
+zeroize = { version = "1", features = ["derive"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite"] }
+async-trait = "0.1"
+thiserror = "1"
+clap = { version = "4", features = ["derive"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+aes-gcm = "0.10"
+regex = "1"
+rand = "0.8"
+
+[build-dependencies]
+tonic-build = "0.11"
