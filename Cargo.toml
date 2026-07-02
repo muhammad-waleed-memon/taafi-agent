@@ -36,10 +36,14 @@ async-trait = "0.1"
 thiserror = "1"
 clap = { version = "4", features = ["derive"] }
 uuid = { version = "1", features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
 aes-gcm = "0.10"
 regex = "1"
+chrono = { version = "0.4", features = ["serde"] }
 rand = "0.8"
+pqcrypto-mlkem = "0.6"
+pqcrypto-mldsa = "0.4"
+pqcrypto-traits = "0.3.5"
+
 
 [build-dependencies]
 tonic-build = "0.11"

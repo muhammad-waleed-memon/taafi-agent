@@ -20,6 +20,8 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use std::time::Duration;
 use tracing::{info, warn, error};
+use tonic::transport::{ClientTlsConfig, Certificate, Identity};
+use std::fs;
 use uuid::Uuid;
 use chrono::Utc;
 
@@ -203,10 +205,83 @@ impl Agent {
                 }
                 
                 // Attempt to send to orchestrator
-                let channel = tonic::transport::Endpoint::from_shared(self.config.orchestrator_url.clone());
-                if let Ok(chan) = channel {
-                    if let Ok(conn) = chan.connect().await {
-                        let mut client = AgentServiceClient::new(conn);
+                let endpoint = tonic::transport::Endpoint::from_shared(self.config.orchestrator_url.clone())
+                    .map_err(|e| {
+                        error!("Invalid orchestrator URL: {:?}", e);
+                        e
+                    })?;
+                let tls_config = tonic::transport::ClientTlsConfig::new()
+                    .ca_certificate(tonic::transport::Certificate::from_pem(
+                        std::fs::read(&self.config.ca_path).map_err(|e| {
+                            error!("Failed to read CA cert: {:?}", e);
+                            e
+                        })?,
+                    ))
+                    .identity(tonic::transport::Identity::from_pem(
+                        std::fs::read(&self.config.cert_path).map_err(|e| {
+                            error!("Failed to read client cert: {:?}", e);
+                            e
+                        })?,
+                        std::fs::read(&self.config.key_path).map_err(|e| {
+                            error!("Failed to read client key: {:?}", e);
+                            e
+                        })?,
+                    ));
+                let chan = endpoint.tls_config(tls_config)
+                    .map_err(|e| {
+                        error!("Failed to configure TLS: {:?}", e);
+                        e
+                    })?;
+                let conn = chan.connect().await.map_err(|e| {
+                    error!("Failed to connect with TLS: {:?}", e);
+                    e
+                })?;
+                let mut client = AgentServiceClient::new(conn);
+    Ok(ep) => ep,
+    Err(e) => {
+        error!("Invalid orchestrator URL: {:?}", e);
+        return;
+    }
+};
+let ca_cert = match std::fs::read(&self.config.ca_path) {
+    Ok(c) => c,
+    Err(e) => {
+        error!("Failed to read CA cert: {:?}", e);
+        return;
+    }
+};
+let client_cert = match std::fs::read(&self.config.cert_path) {
+    Ok(c) => c,
+    Err(e) => {
+        error!("Failed to read client cert: {:?}", e);
+        return;
+    }
+};
+let client_key = match std::fs::read(&self.config.key_path) {
+    Ok(k) => k,
+    Err(e) => {
+        error!("Failed to read client key: {:?}", e);
+        return;
+    }
+};
+let tls_config = tonic::transport::ClientTlsConfig::new()
+    .ca_certificate(tonic::transport::Certificate::from_pem(ca_cert))
+    .identity(tonic::transport::Identity::from_pem(client_cert, client_key));
+let endpoint = match endpoint.tls_config(tls_config) {
+    Ok(ep) => ep,
+    Err(e) => {
+        error!("Failed to configure TLS: {:?}", e);
+        return;
+    }
+};
+let conn = match endpoint.connect().await {
+    Ok(c) => c,
+    Err(e) => {
+        error!("Failed to connect with TLS: {:?}", e);
+        return;
+    }
+};
+let mut client = AgentServiceClient::new(conn);
                         
                         let req = tonic::Request::new(IncidentReport {
                             agent_id: self.config.agent_id.clone(),
